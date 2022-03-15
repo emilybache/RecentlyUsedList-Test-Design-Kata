@@ -1,71 +1,75 @@
 #include <gtest/gtest.h>
 
-
 #include "recently_used_list.h"
 
 using namespace std;
 using namespace ::testing;
 
-TEST(RecentlyUsedListTest, fourPages)
+
+class RecentlyUsedListTest : public Test {
+protected:
+    void SetUp() override {
+        hash = createHash(10);
+    }
+    Queue* q;
+    Hash* hash;
+
+    void LookupPages(int pages[], int length)
+    {
+        for (int i = 0; i < length ; i ++)
+        {
+            LookupPage(q, hash, pages[i]);
+        }
+    }
+
+    void EXPECT_QUEUE_CONTENTS(int expected[], int actual[], int length)
+    {
+        for (int i = 0; i < length ; i ++)
+        {
+            EXPECT_EQ(expected[i], actual[i]);
+        }
+    }
+};
+
+
+TEST_F(RecentlyUsedListTest, fourPages)
 {
     int length = 4;
-    Queue* q = createQueue(length);
+    q = createQueue(length);
 
-    Hash* hash = createHash(10);
-
-    // Let us look up pages 1, 2, 3, 1, 4, 5
-    LookupPage(q, hash, 1);
-    LookupPage(q, hash, 2);
-    LookupPage(q, hash, 3);
-    LookupPage(q, hash, 1);
-    LookupPage(q, hash, 4);
-    LookupPage(q, hash, 5);
+    int pages[] = {1,2,3,1,4,5};
+    LookupPages(pages, 6);
 
     int expected[] = {5, 4, 1, 3};
     int actual[] = {0, 0, 0, 0};
     currentPageOrder(q, actual, length);
-    for (int i = 0; i < length ; i ++) {
-        EXPECT_EQ(expected[i], actual[i]);
-    }
+    EXPECT_QUEUE_CONTENTS(expected, actual, length);
 }
 
-TEST(RecentlyUsedList, removeOneNotFromBack)
+TEST_F(RecentlyUsedListTest, removeOneNotFromBack)
 {
     int length = 3;
-    Queue* q = createQueue(length);
+    q = createQueue(length);
 
-    Hash* hash = createHash(10);
-
-    LookupPage(q, hash, 1);
-    LookupPage(q, hash, 2);
-    LookupPage(q, hash, 3);
-    LookupPage(q, hash, 2);
-    LookupPage(q, hash, 4);
-    LookupPage(q, hash, 5);
+    int pages[] = {1,2,3,2,4,5};
+    LookupPages(pages, 6);
 
     int expected[] = {5, 4, 2};
     int actual[] = {0, 0, 0};
     currentPageOrder(q, actual, length);
-    for (int i = 0; i < length ; i ++) {
-        EXPECT_EQ(expected[i], actual[i]);
-    }
+    EXPECT_QUEUE_CONTENTS(expected, actual, length);
 }
 
-TEST(RecentlyUsedList, oneElement)
+TEST_F(RecentlyUsedListTest, oneElement)
 {
-    Queue* q = createQueue(1);
+    int length = 1;
+    q = createQueue(length);
 
-    Hash* hash = createHash(10);
-
-    LookupPage(q, hash, 1);
-    LookupPage(q, hash, 2);
-    LookupPage(q, hash, 3);
+    int pages[] = {1,2,3};
+    LookupPages(pages, 3);
 
     int expected[] = {3};
     int actual[] = {0};
-    int length = 1;
     currentPageOrder(q, actual, length);
-    for (int i = 0; i < length ; i ++) {
-        EXPECT_EQ(expected[i], actual[i]);
-    }
+    EXPECT_QUEUE_CONTENTS(expected, actual, length);
 }
