@@ -1,71 +1,42 @@
 #include <gtest/gtest.h>
 
-
 #include "recently_used_list.h"
 
 using namespace std;
-using namespace ::testing;
 
-TEST(RecentlyUsedListTest, fourPages)
-{
-    int length = 4;
-    Queue* q = createQueue(length);
-
-    Hash* hash = createHash(10);
-
-    // Let us look up pages 1, 2, 3, 1, 4, 5
-    LookupPage(q, hash, 1);
-    LookupPage(q, hash, 2);
-    LookupPage(q, hash, 3);
-    LookupPage(q, hash, 1);
-    LookupPage(q, hash, 4);
-    LookupPage(q, hash, 5);
-
-    int expected[] = {5, 4, 1, 3};
-    int actual[] = {0, 0, 0, 0};
-    currentPageOrder(q, actual, length);
-    for (int i = 0; i < length ; i ++) {
-        EXPECT_EQ(expected[i], actual[i]);
-    }
+TEST(RecentlyUsedList, Empty) {
+    auto rul = new RecentlyUsedList();
+    auto expected = new vector<string>();
+    ASSERT_EQ(rul->getContents(), *expected);
 }
 
-TEST(RecentlyUsedList, removeOneNotFromBack)
-{
-    int length = 3;
-    Queue* q = createQueue(length);
-
-    Hash* hash = createHash(10);
-
-    LookupPage(q, hash, 1);
-    LookupPage(q, hash, 2);
-    LookupPage(q, hash, 3);
-    LookupPage(q, hash, 2);
-    LookupPage(q, hash, 4);
-    LookupPage(q, hash, 5);
-
-    int expected[] = {5, 4, 2};
-    int actual[] = {0, 0, 0};
-    currentPageOrder(q, actual, length);
-    for (int i = 0; i < length ; i ++) {
-        EXPECT_EQ(expected[i], actual[i]);
-    }
+TEST(RecentlyUsedList, OneItem) {
+    auto rul = new RecentlyUsedList();
+    rul->insert("item");
+    auto expected = new vector<string>{"item"};
+    ASSERT_EQ(rul->getContents(), *expected);
 }
 
-TEST(RecentlyUsedList, oneElement)
-{
-    Queue* q = createQueue(1);
+TEST(RecentlyUsedList, TwoItemsOrderedByInsertion) {
+    auto rul = new RecentlyUsedList();
+    rul->insert("item1");
+    rul->insert("item2");
+    auto expected = new vector<string>{"item2", "item1"};
+    ASSERT_EQ(rul->getContents(), *expected);
+}
 
-    Hash* hash = createHash(10);
+TEST(RecentlyUsedList, DuplicateItemsAreMovedNotInserted) {
+    auto rul = new RecentlyUsedList();
+    rul->insert("item1");
+    rul->insert("item2");
+    rul->insert("item1");
+    auto expected = new vector<string>{"item1", "item2"};
+    ASSERT_EQ(rul->getContents(), *expected);
+}
 
-    LookupPage(q, hash, 1);
-    LookupPage(q, hash, 2);
-    LookupPage(q, hash, 3);
-
-    int expected[] = {3};
-    int actual[] = {0};
-    int length = 1;
-    currentPageOrder(q, actual, length);
-    for (int i = 0; i < length ; i ++) {
-        EXPECT_EQ(expected[i], actual[i]);
-    }
+TEST(RecentlyUsedList, EmptyStringsAreNotAllowed) {
+    auto rul = new RecentlyUsedList();
+    rul->insert("");
+    auto expected = new vector<string>{};
+    ASSERT_EQ(rul->getContents(), *expected);
 }
