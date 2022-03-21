@@ -1,7 +1,26 @@
 
+#include <sstream>
 #include "doctest/doctest.h"
 #include "recently_used_list.h"
 
+// This code is needed so you can see the contents of the vectors of items when the tests fail
+namespace doctest
+{
+    template <typename T>
+    struct StringMaker<std::vector<T> >
+    {
+        static String convert(const std::vector<T>& in) {
+            std::ostringstream oss;
+
+            oss << "[";
+            for(typename std::vector<T>::const_iterator it = in.begin(); it != in.end(); ++it)
+                oss << *it << ", ";
+            oss << "]";
+
+            return oss.str().c_str();
+        }
+    };
+}
 
 TEST_CASE ("RecentlyUsedListDoctest") {
     SUBCASE("empty list") {
