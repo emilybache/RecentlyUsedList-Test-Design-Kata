@@ -12,6 +12,7 @@ TEST_CASE ("RecentlyUsedListDoctest") {
 
     SUBCASE("one item"){
         auto rul = new RecentlyUsedList();
+        rul->insert("item");
         auto expected = new vector<string>{"item"};
         REQUIRE(rul->getContents() == *expected);
     }
