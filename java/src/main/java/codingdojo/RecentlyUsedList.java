@@ -5,7 +5,8 @@ import java.util.List;
 
 public class RecentlyUsedList {
     private final Hash hash;
-    private int numberOfFrames;
+    private final PageStorage storage;
+    private final int numberOfFrames;
     private int count;
     private QNode front;
     private QNode rear;
@@ -13,26 +14,12 @@ public class RecentlyUsedList {
     /**
      * Construct an empty queue
      *
-     * @param numberOfFrames - the maximum number of elements in the queue
+     * @param hash - the underlying storage for QNodes
      */
-    public RecentlyUsedList(int numberOfFrames) {
-        this.numberOfFrames = numberOfFrames;
-        this.hash = new Hash(numberOfFrames);
-    }
-
-    /**
-     * Factory method to create a new queue with specific pages
-     *
-     * @param queueLength - the maximum number of elements in the queue
-     * @param pages       - the pages to store in the queue initially, in order
-     * @return the queue containing the pages
-     */
-    public static RecentlyUsedList createRecentlyUsedList(int queueLength, List<Integer> pages) {
-        var q = new RecentlyUsedList(queueLength);
-        for (Integer page : pages) {
-            q.lookupPage(page);
-        }
-        return q;
+    public RecentlyUsedList(Hash hash, PageStorage storage) {
+        this.hash = hash;
+        this.storage = storage;
+        this.numberOfFrames = this.hash.getCapacity();
     }
 
     boolean areAllFramesFull() {
@@ -43,7 +30,7 @@ public class RecentlyUsedList {
         return this.rear == null;
     }
 
-    void deQueue() {
+    private void deQueue() {
         if (isEmpty())
             return;
 
@@ -59,44 +46,44 @@ public class RecentlyUsedList {
         this.count--;
     }
 
-    void enQueue(int pageNumber) {
+    private void enQueue(int pageNumber) {
         // If all frames are full, remove the page at the rear
-        if (areAllFramesFull()) {
+        if (areAllFramesFull() && this.rear != null) {
             this.hash.setQnode(this.rear.getPageNumber(), null);
             deQueue();
         }
-        // Create a new node with given page number,
-        // And add the new node to the front of queue
-        var temp = new QNode(pageNumber);
-        temp.setNext(this.front);
+        if (!areAllFramesFull()) {
+            // Create a new node with given page number,
+            // And add the new node to the front of queue
+            var temp = new QNode(pageNumber, storage.lookup(pageNumber));
+            temp.setNext(this.front);
 
-        // If queue is empty, change both front and rear pointers
-        if (isEmpty()) {
-            this.rear = temp;
-            this.front = temp;
+            // If queue is empty, change both front and rear pointers
+            if (isEmpty()) {
+                this.rear = temp;
+                this.front = temp;
+            } else // Else change the front
+            {
+                this.front.setPrevious(temp);
+                this.front = temp;
+            }
+
+            // Add page entry to hash also
+            this.hash.setQnode(pageNumber, temp);
+
+            // increment number of full frames
+            this.count++;
         }
-        else // Else change the front
-        {
-            this.front.setPrevious(temp);
-            this.front = temp;
-        }
-
-        // Add page entry to hash also
-        this.hash.setQnode(pageNumber, temp);
-
-        // increment number of full frames
-        this.count++;
     }
 
-    /** This function is called when a page with given 'pageNumber' is referenced
+    /**
+     * This function is called when a page with given 'pageNumber' is referenced
      * from cache (or memory). There are two cases:
      * 1. Frame is not there in memory, we bring it in memory and add to the front
      * of queue
      * 2. Frame is there in memory, we move the frame to front of queue
-     *
      */
-    void lookupPage(int pageNumber)
-    {
+    public void lookupPage(int pageNumber) {
         QNode reqPage = this.hash.getQNode(pageNumber);
 
         // the page is not in cache, bring it
@@ -130,12 +117,16 @@ public class RecentlyUsedList {
         }
     }
 
-    List<Integer> getCurrentPages(int max) {
+    public List<Integer> getCurrentPages() {
+        return this.getContents().stream().map(QNode::getPageNumber).toList();
+    }
+
+    public List<QNode> getContents() {
         QNode current = this.front;
         int i = 0;
-        var result = new ArrayList<Integer>();
-        while(current != null && i < max) {
-            result.add(current.getPageNumber());
+        var result = new ArrayList<QNode>();
+        while (current != null && i < this.numberOfFrames) {
+            result.add(current);
             current = current.getNext();
             i++;
         }

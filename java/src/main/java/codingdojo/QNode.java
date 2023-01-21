@@ -1,13 +1,17 @@
 package codingdojo;
 
+import java.util.Objects;
+
 public class QNode {
 
-    private int pageNumber;
+    private final int pageNumber;
+    private final String page;
     private QNode previous;
     private QNode next;
 
-    public QNode(int pageNumber) {
+    public QNode(int pageNumber, String page) {
         this.pageNumber = pageNumber;
+        this.page = page;
     }
     public void setNext(QNode q) {
         this.next = q;
@@ -27,5 +31,30 @@ public class QNode {
 
     public QNode getNext() {
         return this.next;
+    }
+
+    public String getPage() {
+        return page;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        QNode qNode = (QNode) o;
+        return pageNumber == qNode.pageNumber && page.equals(qNode.page);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pageNumber, page);
+    }
+
+    @Override
+    public String toString() {
+        return "QNode{" +
+                "pageNumber=" + pageNumber +
+                ", page='" + page + '\'' +
+                '}';
     }
 }
