@@ -8,58 +8,71 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RecentlyUsedListTest {
 
-    /**
-     * Factory method to create a new queue with specific pages
-     *
-     * @param queueLength - the maximum number of elements in the queue
-     * @param pages       - the pages to store in the queue in order
-     * @return the queue containing the pages
-     */
-    public static RecentlyUsedList createRecentlyUsedList(int queueLength, List<Integer> pages) {
-        var q = new RecentlyUsedList(queueLength);
-        for (Integer page : pages) {
+    private PageStorage storage = new InMemoryPageStorage(List.of("one", "two", "three", "four", "five", "six"));
+
+    private RecentlyUsedList createRecentlyUsedListAddLookupPages(int capacity, List<Integer> pagesToLookup) {
+        Hash hash = new Hash(capacity);
+        var q = new RecentlyUsedList(hash, storage);
+        for (int page : pagesToLookup) {
             q.lookupPage(page);
         }
         return q;
     }
 
     @Test
-    void fourElements() {
-        var queueLength = 4;
-        var pages = List.of(1,2,3,1,4,5);
+    void emptyQueue() {
+        int capacity = 0;
+        var pagesToLookup = List.of(1,2,3);
 
-        var queue = createRecentlyUsedList(queueLength, pages);
+        RecentlyUsedList q = createRecentlyUsedListAddLookupPages(capacity, pagesToLookup);
 
-        assertEquals(List.of(5,4,1,3), queue.getCurrentPages());
+        assertEquals(List.of(), q.getCurrentPages());
+        assertEquals(List.of(), q.getContents());
     }
 
     @Test
-    void fourElementsSmallHash() {
-        var queueLength = 4;
-        var pages = List.of(1,2,3,1,4,5);
+    void fourElements() {
+        int capacity = 4;
+        var pagesToLookup = List.of(1,2,3,1,4,5);
 
-        var queue = createRecentlyUsedList(queueLength, pages);
+        RecentlyUsedList q = createRecentlyUsedListAddLookupPages(capacity, pagesToLookup);
 
-        assertEquals(List.of(5,4,1,3), queue.getCurrentPages());
+        assertEquals(List.of(5, 4, 1, 3), q.getCurrentPages());
+        assertEquals(List.of(
+                new QNode(5, "five"),
+                new QNode(4, "four"),
+                new QNode(1, "one"),
+                new QNode(3, "three")
+        ), q.getContents());
     }
 
     @Test
     void removeOneNotFromBack() {
-        var queueLength = 3;
-        var pages = List.of(1,2,3,2,4,5);
+        int capacity = 3;
+        var pagesToLookup = List.of(1,2,3,2,4,5);
 
-        var queue = createRecentlyUsedList(queueLength, pages);
+        RecentlyUsedList q = createRecentlyUsedListAddLookupPages(capacity, pagesToLookup);
 
-        assertEquals(List.of(5,4,2), queue.getCurrentPages());
+        assertEquals(List.of(5, 4, 2), q.getCurrentPages());
+        assertEquals(List.of(
+                new QNode(5, "five"),
+                new QNode(4, "four"),
+                new QNode(2, "two")
+        ), q.getContents());
+
     }
 
     @Test
     void oneElement() {
-        var queueLength = 1;
-        var pages = List.of(1,2,3);
+        int capacity = 1;
+        var pagesToLookup = List.of(1,2,3);
 
-        var queue = createRecentlyUsedList(queueLength, pages);
+        RecentlyUsedList q = createRecentlyUsedListAddLookupPages(capacity, pagesToLookup);
 
-        assertEquals(List.of(3), queue.getCurrentPages());
+
+        assertEquals(List.of(3), q.getCurrentPages());
+        assertEquals(List.of(
+                new QNode(3, "three")
+        ), q.getContents());
     }
 }
