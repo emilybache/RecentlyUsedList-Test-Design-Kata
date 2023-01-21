@@ -20,21 +20,6 @@ public class RecentlyUsedList {
         this.hash = new Hash(numberOfFrames);
     }
 
-    /**
-     * Factory method to create a new queue with specific pages
-     *
-     * @param queueLength - the maximum number of elements in the queue
-     * @param pages       - the pages to store in the queue initially, in order
-     * @return the queue containing the pages
-     */
-    public static RecentlyUsedList createRecentlyUsedList(int queueLength, List<Integer> pages) {
-        var q = new RecentlyUsedList(queueLength);
-        for (Integer page : pages) {
-            q.lookupPage(page);
-        }
-        return q;
-    }
-
     boolean areAllFramesFull() {
         return this.count == this.numberOfFrames;
     }
@@ -130,11 +115,11 @@ public class RecentlyUsedList {
         }
     }
 
-    List<Integer> getCurrentPages(int max) {
+    List<Integer> getCurrentPages() {
         QNode current = this.front;
         int i = 0;
         var result = new ArrayList<Integer>();
-        while(current != null && i < max) {
+        while(current != null && i < this.numberOfFrames) {
             result.add(current.getPageNumber());
             current = current.getNext();
             i++;
