@@ -1,30 +1,35 @@
-#include "ApprovalTests.hpp"
 #include "doctest/doctest.h"
 
 
 #include "recently_used_list.h"
 
+void lookupPages(Queue* q, Hash* hash, int pages[], int pagesCount) {
+    for (int i = 0; i < pagesCount; ++i) {
+        LookupPage(q, hash, pages[i]);
+    }
+}
+
+void ExpectQueueContents(Queue* q, int expected[], int length) {
+    int actual[length];
+    memset(actual, 0, length*sizeof(expected[0]));
+    currentPageOrder(q, actual, length);
+    for (int i = 0; i < length ; i ++) {
+        CHECK(expected[i] == actual[i]);
+    }
+}
+
 TEST_CASE ("Recently Used List") {
+    Hash* hash = createHash(10);
     SUBCASE("Four elements") {
         int length = 4;
         Queue* q = createQueue(length);
 
-        Hash* hash = createHash(10);
+        int pages[] = {1, 2, 3, 1, 4, 5};
+        lookupPages(q, hash, pages, 6);
 
-        // Let us look up pages 1, 2, 3, 1, 4, 5
-        LookupPage(q, hash, 1);
-        LookupPage(q, hash, 2);
-        LookupPage(q, hash, 3);
-        LookupPage(q, hash, 1);
-        LookupPage(q, hash, 4);
-        LookupPage(q, hash, 5);
 
         int expected[] = {5, 4, 1, 3};
-        int actual[] = {0, 0, 0, 0};
-        currentPageOrder(q, actual, length);
-        for (int i = 0; i < length ; i ++) {
-            CHECK(expected[i] == actual[i]);
-        }
+        ExpectQueueContents(q, expected, length);
     }
 
     SUBCASE("removeOneNotFromBack")
@@ -32,40 +37,26 @@ TEST_CASE ("Recently Used List") {
         int length = 3;
         Queue* q = createQueue(length);
 
-        Hash* hash = createHash(10);
+        int pages[] = {1, 2, 3, 2, 4, 5};
+        lookupPages(q, hash, pages, 6);
 
-        LookupPage(q, hash, 1);
-        LookupPage(q, hash, 2);
-        LookupPage(q, hash, 3);
-        LookupPage(q, hash, 2);
-        LookupPage(q, hash, 4);
-        LookupPage(q, hash, 5);
 
         int expected[] = {5, 4, 2};
-        int actual[] = {0, 0, 0};
-        currentPageOrder(q, actual, length);
-        for (int i = 0; i < length ; i ++) {
-            REQUIRE(expected[i] == actual[i]);
-        }
+        ExpectQueueContents(q, expected, length);
+
     }
 
     SUBCASE("oneElement")
     {
-        Queue* q = createQueue(1);
+        int length = 1;
+        Queue* q = createQueue(length);
 
-        Hash* hash = createHash(10);
+        int pages[] = {1, 2, 3};
+        lookupPages(q, hash, pages, 3);
 
-        LookupPage(q, hash, 1);
-        LookupPage(q, hash, 2);
-        LookupPage(q, hash, 3);
 
         int expected[] = {3};
-        int actual[] = {0};
-        int length = 1;
-        currentPageOrder(q, actual, length);
-        for (int i = 0; i < length ; i ++) {
-            REQUIRE(expected[i] == actual[i]);
-        }
+        ExpectQueueContents(q, expected, length);
     }
 }
 
