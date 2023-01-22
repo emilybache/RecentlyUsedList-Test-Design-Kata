@@ -23,6 +23,17 @@ public class RecentlyUsedListTest {
     }
 
     @Test
+    void lookupPage() {
+        PageStorage storage = new InMemoryPageStorage(List.of("one", "two", "three", "four", "five", "six"));
+        Hash hash = new Hash(1);
+        var q = new RecentlyUsedList(hash, storage);
+
+        String page = q.lookupPage(1);
+
+        assertEquals("one", page);
+    }
+
+    @Test
     void moveFromBackToFront() {
         PageStorage storage = new InMemoryPageStorage(List.of("one", "two", "three", "four", "five", "six"));
         Hash hash = new Hash(4);
