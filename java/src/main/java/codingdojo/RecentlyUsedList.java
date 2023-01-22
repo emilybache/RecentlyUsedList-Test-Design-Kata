@@ -83,7 +83,7 @@ public class RecentlyUsedList {
      * of queue
      * 2. Frame is there in memory, we move the frame to front of queue
      */
-    public void lookupPage(int pageNumber) {
+    public String lookupPage(int pageNumber) {
         QNode reqPage = this.hash.getQNode(pageNumber);
 
         // the page is not in cache, bring it
@@ -115,6 +115,10 @@ public class RecentlyUsedList {
             // Change front to the requested page
             this.front = reqPage;
         }
+        if (this.front != null) {
+            return this.front.getPage();
+        }
+        return null;
     }
 
     public List<Integer> getCurrentPages() {

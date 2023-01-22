@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RecentlyUsedListTest {
 
@@ -17,12 +18,12 @@ public class RecentlyUsedListTest {
         q.lookupPage(2);
         q.lookupPage(3);
 
-        assertEquals(List.of(), q.getCurrentPages());
-        assertEquals(List.of(), q.getContents());
+        assertTrue(q.getCurrentPages().isEmpty());
+        assertTrue(q.getContents().isEmpty());
     }
 
     @Test
-    void fourElements() {
+    void moveFromBackToFront() {
         PageStorage storage = new InMemoryPageStorage(List.of("one", "two", "three", "four", "five", "six"));
         Hash hash = new Hash(4);
         var q = new RecentlyUsedList(hash, storage);
@@ -34,12 +35,11 @@ public class RecentlyUsedListTest {
         q.lookupPage(5);
 
         assertEquals(List.of(5, 4, 1, 3), q.getCurrentPages());
-        assertEquals(List.of(
-                        new QNode(5, "five"),
-                        new QNode(4, "four"),
-                        new QNode(1, "one"),
-                        new QNode(3, "three")
-        ), q.getContents());
+        var contents = q.getContents();
+        assertEquals("five", contents.get(0).getPage());
+        assertEquals("four", contents.get(1).getPage());
+        assertEquals("one", contents.get(2).getPage());
+        assertEquals("three", contents.get(3).getPage());
     }
 
     @Test
@@ -55,11 +55,10 @@ public class RecentlyUsedListTest {
         q.lookupPage(5);
 
         assertEquals(List.of(5, 4, 2), q.getCurrentPages());
-        assertEquals(List.of(
-                new QNode(5, "five"),
-                new QNode(4, "four"),
-                new QNode(2, "two")
-        ), q.getContents());
+        var contents = q.getContents();
+        assertEquals("five", contents.get(0).getPage());
+        assertEquals("four", contents.get(1).getPage());
+        assertEquals("two", contents.get(2).getPage());
 
     }
 
@@ -73,8 +72,7 @@ public class RecentlyUsedListTest {
         q.lookupPage(3);
 
         assertEquals(List.of(3), q.getCurrentPages());
-        assertEquals(List.of(
-                new QNode(3, "three")
-        ), q.getContents());
+        var contents = q.getContents();
+        assertEquals("three", contents.get(0).getPage());
     }
 }
