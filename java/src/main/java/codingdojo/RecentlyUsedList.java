@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RecentlyUsedList {
-    private final Hash hash;
+    private final Cache<QNode> cache;
     private final PageStorage storage;
     private final int numberOfFrames;
     private int count;
@@ -14,12 +14,12 @@ public class RecentlyUsedList {
     /**
      * Construct an empty queue
      *
-     * @param hash - the underlying storage for QNodes
+     * @param cache - the underlying storage for QNodes
      */
-    public RecentlyUsedList(Hash hash, PageStorage storage) {
-        this.hash = hash;
+    public RecentlyUsedList(Cache<QNode> cache, PageStorage storage) {
+        this.cache = cache;
         this.storage = storage;
-        this.numberOfFrames = this.hash.getCapacity();
+        this.numberOfFrames = this.cache.getCapacity();
     }
 
     boolean areAllFramesFull() {
@@ -49,7 +49,7 @@ public class RecentlyUsedList {
     private void enQueue(int pageNumber) {
         // If all frames are full, remove the page at the rear
         if (areAllFramesFull() && this.rear != null) {
-            this.hash.setQnode(this.rear.getPageNumber(), null);
+            this.cache.setQnode(this.rear.getPageNumber(), null);
             deQueue();
         }
         if (!areAllFramesFull()) {
@@ -69,7 +69,7 @@ public class RecentlyUsedList {
             }
 
             // Add page entry to hash also
-            this.hash.setQnode(pageNumber, temp);
+            this.cache.setQnode(pageNumber, temp);
 
             // increment number of full frames
             this.count++;
@@ -84,7 +84,7 @@ public class RecentlyUsedList {
      * 2. Frame is there in memory, we move the frame to front of queue
      */
     public String lookupPage(int pageNumber) {
-        QNode reqPage = this.hash.getQNode(pageNumber);
+        QNode reqPage = this.cache.getQNode(pageNumber);
 
         // the page is not in cache, bring it
         if (reqPage == null)

@@ -10,25 +10,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class RecentlyUsedListTest {
 
     @Test
-    void emptyQueue() {
+    void emptyCache() {
         PageStorage storage = new InMemoryPageStorage(List.of("one", "two", "three", "four", "five", "six"));
-        Hash hash = new Hash(0);
-        var q = new RecentlyUsedList(hash, storage);
-        q.lookupPage(1);
-        q.lookupPage(2);
-        q.lookupPage(3);
+        var cache = new Cache<QNode>(0);
+        var recentlyUsedList = new RecentlyUsedList(cache, storage);
+        recentlyUsedList.lookupPage(1);
+        recentlyUsedList.lookupPage(2);
+        recentlyUsedList.lookupPage(3);
 
-        assertTrue(q.getCurrentPages().isEmpty());
-        assertTrue(q.getContents().isEmpty());
+        assertTrue(recentlyUsedList.getCurrentPages().isEmpty());
+        assertTrue(recentlyUsedList.getContents().isEmpty());
     }
 
     @Test
     void lookupPage() {
         PageStorage storage = new InMemoryPageStorage(List.of("one", "two", "three", "four", "five", "six"));
-        Hash hash = new Hash(1);
-        var q = new RecentlyUsedList(hash, storage);
+        var cache = new Cache<QNode>(1);
+        var recentlyUsedList = new RecentlyUsedList(cache, storage);
 
-        String page = q.lookupPage(1);
+        String page = recentlyUsedList.lookupPage(1);
 
         assertEquals("one", page);
     }
@@ -36,17 +36,17 @@ public class RecentlyUsedListTest {
     @Test
     void moveFromBackToFront() {
         PageStorage storage = new InMemoryPageStorage(List.of("one", "two", "three", "four", "five", "six"));
-        Hash hash = new Hash(4);
-        var q = new RecentlyUsedList(hash, storage);
-        q.lookupPage(1);
-        q.lookupPage(2);
-        q.lookupPage(3);
-        q.lookupPage(1);
-        q.lookupPage(4);
-        q.lookupPage(5);
+        var cache = new Cache<QNode>(4);
+        var recentlyUsedList = new RecentlyUsedList(cache, storage);
+        recentlyUsedList.lookupPage(1);
+        recentlyUsedList.lookupPage(2);
+        recentlyUsedList.lookupPage(3);
+        recentlyUsedList.lookupPage(1);
+        recentlyUsedList.lookupPage(4);
+        recentlyUsedList.lookupPage(5);
 
-        assertEquals(List.of(5, 4, 1, 3), q.getCurrentPages());
-        var contents = q.getContents();
+        assertEquals(List.of(5, 4, 1, 3), recentlyUsedList.getCurrentPages());
+        var contents = recentlyUsedList.getContents();
         assertEquals("five", contents.get(0).getPage());
         assertEquals("four", contents.get(1).getPage());
         assertEquals("one", contents.get(2).getPage());
@@ -56,17 +56,17 @@ public class RecentlyUsedListTest {
     @Test
     void removeOneNotFromBack() {
         PageStorage storage = new InMemoryPageStorage(List.of("one", "two", "three", "four", "five", "six"));
-        Hash hash = new Hash(3);
-        var q = new RecentlyUsedList(hash, storage);
-        q.lookupPage(1);
-        q.lookupPage(2);
-        q.lookupPage(3);
-        q.lookupPage(2);
-        q.lookupPage(4);
-        q.lookupPage(5);
+        var cache = new Cache<QNode>(3);
+        var recentlyUsedList = new RecentlyUsedList(cache, storage);
+        recentlyUsedList.lookupPage(1);
+        recentlyUsedList.lookupPage(2);
+        recentlyUsedList.lookupPage(3);
+        recentlyUsedList.lookupPage(2);
+        recentlyUsedList.lookupPage(4);
+        recentlyUsedList.lookupPage(5);
 
-        assertEquals(List.of(5, 4, 2), q.getCurrentPages());
-        var contents = q.getContents();
+        assertEquals(List.of(5, 4, 2), recentlyUsedList.getCurrentPages());
+        var contents = recentlyUsedList.getContents();
         assertEquals("five", contents.get(0).getPage());
         assertEquals("four", contents.get(1).getPage());
         assertEquals("two", contents.get(2).getPage());
@@ -76,14 +76,14 @@ public class RecentlyUsedListTest {
     @Test
     void oneElement() {
         PageStorage storage = new InMemoryPageStorage(List.of("one", "two", "three", "four", "five", "six"));
-        Hash hash = new Hash(1);
-        var q = new RecentlyUsedList(hash, storage);
-        q.lookupPage(1);
-        q.lookupPage(2);
-        q.lookupPage(3);
+        var cache = new Cache<QNode>(1);
+        var recentlyUsedList = new RecentlyUsedList(cache, storage);
+        recentlyUsedList.lookupPage(1);
+        recentlyUsedList.lookupPage(2);
+        recentlyUsedList.lookupPage(3);
 
-        assertEquals(List.of(3), q.getCurrentPages());
-        var contents = q.getContents();
+        assertEquals(List.of(3), recentlyUsedList.getCurrentPages());
+        var contents = recentlyUsedList.getContents();
         assertEquals("three", contents.get(0).getPage());
     }
 }
