@@ -6,23 +6,23 @@ import java.util.Map;
 /**
  * Storage for QNodes. Look them up by pageNumber. Maximum capacity is given in constructor.
  */
-public class Hash {
-    private int capacity;
-    private Map<Integer, QNode> qnodes;
+public class Cache<T> {
+    private final int capacity;
+    private final Map<Integer, T> qnodes;
 
-    public Hash(int capacity) {
+    public Cache(int capacity) {
         this.capacity = capacity;
         this.qnodes  = new HashMap<>(capacity);
     }
 
-    public QNode getQNode(int pageNumber) {
+    public T getQNode(int pageNumber) {
         if (!this.qnodes.containsKey(pageNumber)) {
             return null;
         }
         return this.qnodes.get(pageNumber);
     }
 
-    public void setQnode(int pageNumber, QNode qnode) {
+    public void setQnode(int pageNumber, T qnode) {
         if (qnode == null) {
             this.qnodes.remove(pageNumber);
         } else {
