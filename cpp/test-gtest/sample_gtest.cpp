@@ -11,33 +11,29 @@ public:
 };
 
 TEST_F(RecentlyUsedListTest, Empty) {
-    auto expected = new vector<string>();
-    ASSERT_EQ(rul->getContents(), *expected);
+    ASSERT_THAT(rul->getContents(), testing::IsEmpty());
 }
 
 TEST_F(RecentlyUsedListTest, OneItem) {
     rul->insert("item");
-    auto expected = new vector<string>{"item"};
-    ASSERT_EQ(rul->getContents(), *expected);
+    ASSERT_THAT(rul->getContents(), testing::ElementsAre("item"));
 }
 
 TEST_F(RecentlyUsedListTest, TwoItemsOrderedByInsertion) {
     rul->insert("item1");
     rul->insert("item2");
-    auto expected = new vector<string>{"item2", "item1"};
-    ASSERT_EQ(rul->getContents(), *expected);
+    ASSERT_THAT(rul->getContents(), testing::ElementsAre("item2", "item1"));
+
 }
 
 TEST_F(RecentlyUsedListTest, DuplicateItemsAreMovedNotInserted) {
     rul->insert("item1");
     rul->insert("item2");
     rul->insert("item1");
-    auto expected = new vector<string>{"item1", "item2"};
-    ASSERT_EQ(rul->getContents(), *expected);
+    ASSERT_THAT(rul->getContents(), testing::ElementsAre("item1", "item2"));
 }
 
 TEST_F(RecentlyUsedListTest, EmptyStringsAreNotAllowed) {
     rul->insert("");
-    auto expected = new vector<string>{};
-    ASSERT_EQ(rul->getContents(), *expected);
+    ASSERT_THAT(rul->getContents(), testing::IsEmpty());
 }
