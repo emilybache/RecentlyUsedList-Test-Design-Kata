@@ -1,39 +1,46 @@
 #include "ApprovalTests.hpp"
 #include "catch2/catch.hpp"
 #include "recently_used_list.h"
+#include "InMemoryPageStorage.h"
 
 TEST_CASE ("RecentlyUsedList") {
-    auto rul = new RecentlyUsedList();
+    auto pageStorage = new InMemoryPageStorage();
     SECTION("empty list") {
+        auto cache = new Cache(0);
+        auto rul = new RecentlyUsedList(cache, pageStorage);
         auto expected = new vector<string>();
         REQUIRE(rul->getContents() == *expected);
     }
     SECTION("one item"){
-        rul->insert("item");
-        auto expected = new vector<string>{"item"};
-        REQUIRE(rul->getContents() == *expected);
+        auto cache = new Cache(4);
+        auto rul = new RecentlyUsedList(cache, pageStorage);
+        rul->lookupPage(1);
+        auto expected = new vector<string>{"one"};
+        REQUIRE_THAT(rul->getContents(), Catch::Matchers::Equals(*expected));
     }
 
     SECTION("order two items by most recently inserted"){
-        rul->insert("item1");
-        rul->insert("item2");
-        auto expected = new vector<string>{"item2", "item1"};
+        auto cache = new Cache(4);
+        auto rul = new RecentlyUsedList(cache, pageStorage);
+
+        rul->lookupPage(1);
+        rul->lookupPage(2);
+        auto expected = new vector<string>{"two", "one"};
         REQUIRE(rul->getContents() == *expected);
     }
 
     SECTION("duplicate items are moved not inserted"){
-        rul->insert("item1");
-        rul->insert("item2");
-        rul->insert("item1");
-        auto expected = new vector<string>{"item1", "item2"};
+        auto cache = new Cache(4);
+        auto rul = new RecentlyUsedList(cache, pageStorage);
+
+        rul->lookupPage(1);
+        rul->lookupPage(2);
+        rul->lookupPage(1);
+        auto expected = new vector<string>{"one", "two"};
         REQUIRE(rul->getContents() == *expected);
     }
 
-    SECTION("empty strings are not allowed"){
-        rul->insert("");
-        auto expected = new vector<string>{};
-        REQUIRE(rul->getContents() == *expected);
-    }
+
 
 }
 

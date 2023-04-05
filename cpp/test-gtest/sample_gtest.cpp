@@ -2,38 +2,55 @@
 #include "gmock/gmock.h"
 
 #include "recently_used_list.h"
+#include "InMemoryPageStorage.h"
 
 using namespace std;
 
+
 class RecentlyUsedListTest : public ::testing::Test {
+private:
+    PageStorage* pageStorage = new InMemoryPageStorage();
 public:
-    RecentlyUsedList* rul = new RecentlyUsedList();
+    RecentlyUsedList* createRecentlyUsedList(int cacheSize){
+        auto cache = new Cache(cacheSize);
+        return new RecentlyUsedList(cache, pageStorage);
+    }
+    void lookupPages(RecentlyUsedList *rul, vector<int> pages) {
+        for (int pageNumber: pages) {
+            rul->lookupPage(pageNumber);
+        }
+    }
 };
 
+TEST_F(RecentlyUsedListTest, EmptyCache) {
+    auto rul = createRecentlyUsedList(0);
+    lookupPages(rul, {1, 2, 3});
+    ASSERT_THAT(rul->getContents(), testing::IsEmpty());
+    ASSERT_THAT(rul->getCurrentPages(), testing::IsEmpty());
+}
+
 TEST_F(RecentlyUsedListTest, Empty) {
+    auto rul = createRecentlyUsedList(0);
     ASSERT_THAT(rul->getContents(), testing::IsEmpty());
 }
 
 TEST_F(RecentlyUsedListTest, OneItem) {
-    rul->insert("item");
-    ASSERT_THAT(rul->getContents(), testing::ElementsAre("item"));
+    auto rul = createRecentlyUsedList(4);
+    rul->lookupPage(1);
+    EXPECT_THAT(rul->getCurrentPages(), testing::ElementsAre(1));
+    EXPECT_THAT(rul->getContents(), testing::ElementsAre("one"));
 }
 
 TEST_F(RecentlyUsedListTest, TwoItemsOrderedByInsertion) {
-    rul->insert("item1");
-    rul->insert("item2");
-    ASSERT_THAT(rul->getContents(), testing::ElementsAre("item2", "item1"));
+    auto rul = createRecentlyUsedList(4);
+    lookupPages(rul, {1, 3});
+    ASSERT_THAT(rul->getContents(), testing::ElementsAre("three", "one"));
 
 }
 
 TEST_F(RecentlyUsedListTest, DuplicateItemsAreMovedNotInserted) {
-    rul->insert("item1");
-    rul->insert("item2");
-    rul->insert("item1");
-    ASSERT_THAT(rul->getContents(), testing::ElementsAre("item1", "item2"));
+    auto rul = createRecentlyUsedList(4);
+    lookupPages(rul, {1, 2, 1});
+    ASSERT_THAT(rul->getContents(), testing::ElementsAre("one", "two"));
 }
 
-TEST_F(RecentlyUsedListTest, EmptyStringsAreNotAllowed) {
-    rul->insert("");
-    ASSERT_THAT(rul->getContents(), testing::IsEmpty());
-}

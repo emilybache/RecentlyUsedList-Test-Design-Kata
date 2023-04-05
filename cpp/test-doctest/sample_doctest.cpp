@@ -2,6 +2,7 @@
 #include <sstream>
 #include "doctest/doctest.h"
 #include "recently_used_list.h"
+#include "InMemoryPageStorage.h"
 
 // This code is needed so you can see the contents of the vectors of items when the tests fail
 namespace doctest
@@ -23,42 +24,40 @@ namespace doctest
 }
 
 TEST_CASE ("RecentlyUsedListDoctest") {
+    auto pageStorage = new InMemoryPageStorage();
+    auto cache = new Cache(0);
+    auto rul = new RecentlyUsedList(cache, pageStorage);
     SUBCASE("empty list") {
-        auto rul = new RecentlyUsedList();
         auto expected = new vector<string>();
         REQUIRE(rul->getContents() == *expected);
     }
 
     SUBCASE("one item"){
-        auto rul = new RecentlyUsedList();
-        rul->insert("item");
-        auto expected = new vector<string>{"item"};
+        cache->setCapacity(4);
+        rul->lookupPage(1);
+        auto expected = new vector<string>{"one"};
         REQUIRE(rul->getContents() == *expected);
     }
 
     SUBCASE("order two items by most recently inserted"){
-        auto rul = new RecentlyUsedList();
-        rul->insert("item1");
-        rul->insert("item2");
-        auto expected = new vector<string>{"item2", "item1"};
+        cache->setCapacity(4);
+
+        rul->lookupPage(1);
+        rul->lookupPage(2);
+        auto expected = new vector<string>{"two", "one"};
         REQUIRE(rul->getContents() == *expected);
     }
 
     SUBCASE("duplicate items are moved not inserted"){
-        auto rul = new RecentlyUsedList();
-        rul->insert("item1");
-        rul->insert("item2");
-        rul->insert("item1");
-        auto expected = new vector<string>{"item1", "item2"};
+        cache->setCapacity(4);
+        rul->lookupPage(1);
+        rul->lookupPage(2);
+        rul->lookupPage(1);
+
+        auto expected = new vector<string>{"one", "two"};
         REQUIRE(rul->getContents() == *expected);
     }
 
-    SUBCASE("empty strings are not allowed"){
-        auto rul = new RecentlyUsedList();
-        rul->insert("");
-        auto expected = new vector<string>{};
-        REQUIRE(rul->getContents() == *expected);
-    }
 
 }
 
