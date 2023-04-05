@@ -23,6 +23,12 @@ namespace doctest
     };
 }
 
+void lookupPages(RecentlyUsedList *rul, vector<int> pages) {
+    for (int pageNumber: pages) {
+        rul->lookupPage(pageNumber);
+    }
+}
+
 TEST_CASE ("RecentlyUsedListDoctest") {
     auto pageStorage = new InMemoryPageStorage();
     auto cache = new Cache(0);
@@ -41,24 +47,40 @@ TEST_CASE ("RecentlyUsedListDoctest") {
 
     SUBCASE("order two items by most recently inserted"){
         cache->setCapacity(4);
-
-        rul->lookupPage(1);
-        rul->lookupPage(2);
+        lookupPages(rul, {1, 2});
         auto expected = new vector<string>{"two", "one"};
         REQUIRE(rul->getContents() == *expected);
     }
 
     SUBCASE("duplicate items are moved not inserted"){
         cache->setCapacity(4);
-        rul->lookupPage(1);
-        rul->lookupPage(2);
-        rul->lookupPage(1);
-
+        lookupPages(rul, {1, 2, 1});
         auto expected = new vector<string>{"one", "two"};
         REQUIRE(rul->getContents() == *expected);
     }
 
+    SUBCASE("move from back to front"){
+        cache->setCapacity(4);
+        lookupPages(rul, {1, 2, 3, 1, 4, 5});
 
+        auto expected = new vector<string>{"five", "four", "one", "three"};
+        REQUIRE(rul->getContents() == *expected);
+    }
+
+    SUBCASE("remove one not from back"){
+        cache->setCapacity(3);
+        lookupPages(rul, {1, 2, 3, 2, 4, 5});
+
+        auto expected = new vector<string>{"five", "four", "two"};
+        REQUIRE(rul->getContents() == *expected);
+    }
+    SUBCASE("one element capacity"){
+        cache->setCapacity(1);
+        lookupPages(rul, {1, 2, 3, 2, 4, 5});
+
+        auto expected = new vector<string>{"five"};
+        REQUIRE(rul->getContents() == *expected);
+    }
 }
 
 
