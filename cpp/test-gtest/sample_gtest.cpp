@@ -10,18 +10,20 @@ using namespace std;
 class RecentlyUsedListTest : public ::testing::Test {
 protected:
     PageStorage* pageStorage;
+    Cache* cache;
     RecentlyUsedList* recentlyUsedList;
     void SetUp() override {
         pageStorage = new InMemoryPageStorage();
 
     }
     void TearDown() override {
-        delete pageStorage;
         delete recentlyUsedList;
+        delete cache;
+        delete pageStorage;
     }
 public:
     RecentlyUsedList* createRecentlyUsedList(int cacheSize){
-        auto cache = new Cache(cacheSize);
+        cache = new Cache(cacheSize);
         recentlyUsedList = new RecentlyUsedList(cache, pageStorage);
         return recentlyUsedList;
     }
