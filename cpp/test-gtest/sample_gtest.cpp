@@ -8,67 +8,80 @@ using namespace std;
 
 
 class RecentlyUsedListTest : public ::testing::Test {
-private:
-    PageStorage* pageStorage = new InMemoryPageStorage();
+protected:
+    PageStorage* pageStorage;
+    RecentlyUsedList* recentlyUsedList;
+    void SetUp() override {
+        pageStorage = new InMemoryPageStorage();
+
+    }
+    void TearDown() override {
+        delete pageStorage;
+        delete recentlyUsedList;
+    }
 public:
     RecentlyUsedList* createRecentlyUsedList(int cacheSize){
         auto cache = new Cache(cacheSize);
-        return new RecentlyUsedList(cache, pageStorage);
+        recentlyUsedList = new RecentlyUsedList(cache, pageStorage);
+        return recentlyUsedList;
     }
-    void lookupPages(RecentlyUsedList *rul, vector<int> pages) {
+
+    void lookupPages(RecentlyUsedList *recentlyUsedList, vector<int> pages) {
         for (int pageNumber: pages) {
-            rul->lookupPage(pageNumber);
+            recentlyUsedList->lookupPage(pageNumber);
         }
     }
+
 };
 
+
 TEST_F(RecentlyUsedListTest, EmptyCache) {
-    auto rul = createRecentlyUsedList(0);
-    lookupPages(rul, {1, 2, 3});
-    ASSERT_THAT(rul->getContents(), testing::IsEmpty());
-    ASSERT_THAT(rul->getCurrentPages(), testing::IsEmpty());
+    createRecentlyUsedList(0);
+    lookupPages(recentlyUsedList, {1, 2, 3});
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::IsEmpty());
+    ASSERT_THAT(recentlyUsedList->getCurrentPages(), testing::IsEmpty());
 }
 
 TEST_F(RecentlyUsedListTest, Empty) {
-    auto rul = createRecentlyUsedList(0);
-    ASSERT_THAT(rul->getContents(), testing::IsEmpty());
+    createRecentlyUsedList(0);
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::IsEmpty());
 }
 
 TEST_F(RecentlyUsedListTest, OneItem) {
-    auto rul = createRecentlyUsedList(4);
-    rul->lookupPage(1);
-    EXPECT_THAT(rul->getCurrentPages(), testing::ElementsAre(1));
-    EXPECT_THAT(rul->getContents(), testing::ElementsAre("one"));
+    createRecentlyUsedList(4);
+    recentlyUsedList->lookupPage(1);
+    EXPECT_THAT(recentlyUsedList->getCurrentPages(), testing::ElementsAre(1));
+    EXPECT_THAT(recentlyUsedList->getContents(), testing::ElementsAre("one"));
 }
 
 TEST_F(RecentlyUsedListTest, TwoItemsOrderedByInsertion) {
-    auto rul = createRecentlyUsedList(4);
-    lookupPages(rul, {1, 3});
-    ASSERT_THAT(rul->getContents(), testing::ElementsAre("three", "one"));
+    createRecentlyUsedList(4);
+    lookupPages(recentlyUsedList, {1, 3});
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::ElementsAre("three", "one"));
 
 }
 
 TEST_F(RecentlyUsedListTest, DuplicateItemsAreMovedNotInserted) {
-    auto rul = createRecentlyUsedList(4);
-    lookupPages(rul, {1, 2, 1});
-    ASSERT_THAT(rul->getContents(), testing::ElementsAre("one", "two"));
+    createRecentlyUsedList(4);
+    lookupPages(recentlyUsedList, {1, 2, 1});
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::ElementsAre("one", "two"));
 }
 
 
 TEST_F(RecentlyUsedListTest, MoveFromBackToFront) {
-    auto rul = createRecentlyUsedList(4);
-    lookupPages(rul, {1, 2, 3,1,4,5});
-    ASSERT_THAT(rul->getContents(), testing::ElementsAre("five", "four", "one", "three"));
+    createRecentlyUsedList(4);
+    lookupPages(recentlyUsedList, {1, 2, 3,1,4,5});
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::ElementsAre("five", "four", "one", "three"));
 }
 
 TEST_F(RecentlyUsedListTest, RemoveOneNotFromBack) {
-    auto rul = createRecentlyUsedList(3);
-    lookupPages(rul, {1, 2, 3, 2, 4, 5});
-    ASSERT_THAT(rul->getContents(), testing::ElementsAre("five", "four", "two"));
+    createRecentlyUsedList(3);
+    lookupPages(recentlyUsedList, {1, 2, 3, 2, 4, 5});
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::ElementsAre("five", "four", "two"));
 }
 
 TEST_F(RecentlyUsedListTest, OneElementCapacity) {
-    auto rul = createRecentlyUsedList(1);
-    lookupPages(rul, {1, 2, 3, 2, 4, 3});
-    ASSERT_THAT(rul->getContents(), testing::ElementsAre("three"));
+    createRecentlyUsedList(1);
+    lookupPages(recentlyUsedList, {1, 2, 3, 2, 4, 3});
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::ElementsAre("three"));
 }
