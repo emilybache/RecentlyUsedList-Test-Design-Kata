@@ -17,6 +17,10 @@ TEST(RecentlyUsedListTest, EmptyCache) {
 
     ASSERT_THAT(rul->getContents(), testing::IsEmpty());
     ASSERT_THAT(rul->getCurrentPages(), testing::IsEmpty());
+
+    delete rul;
+    delete cache;
+    delete pageStorage;
 }
 
 TEST(RecentlyUsedListTest, Empty) {
@@ -24,6 +28,10 @@ TEST(RecentlyUsedListTest, Empty) {
     auto cache = new Cache(0);
     auto rul = new RecentlyUsedList(cache, pageStorage);
     ASSERT_THAT(rul->getContents(), testing::IsEmpty());
+
+    delete rul;
+    delete cache;
+    delete pageStorage;
 }
 
 TEST(RecentlyUsedListTest, OneItem) {
@@ -33,6 +41,10 @@ TEST(RecentlyUsedListTest, OneItem) {
     rul->lookupPage(1);
     EXPECT_THAT(rul->getCurrentPages(), testing::ElementsAre(1));
     EXPECT_THAT(rul->getContents(), testing::ElementsAre("one"));
+
+    delete rul;
+    delete cache;
+    delete pageStorage;
 }
 
 TEST(RecentlyUsedListTest, TwoItemsOrderedByInsertion) {
@@ -43,6 +55,9 @@ TEST(RecentlyUsedListTest, TwoItemsOrderedByInsertion) {
     rul->lookupPage(3);
     ASSERT_THAT(rul->getContents(), testing::ElementsAre("three", "one"));
 
+    delete rul;
+    delete cache;
+    delete pageStorage;
 }
 
 TEST(RecentlyUsedListTest, DuplicateItemsAreMovedNotInserted) {
@@ -53,6 +68,10 @@ TEST(RecentlyUsedListTest, DuplicateItemsAreMovedNotInserted) {
     rul->lookupPage(2);
     rul->lookupPage(1);
     ASSERT_THAT(rul->getContents(), testing::ElementsAre("one", "two"));
+
+    delete rul;
+    delete cache;
+    delete pageStorage;
 }
 
 
@@ -68,6 +87,10 @@ TEST(RecentlyUsedListTest, MoveFromBackToFront) {
     rul->lookupPage(5);
     auto expected = new vector<string>{"five", "four", "one", "three"};
     ASSERT_EQ(rul->getContents(), *expected);
+
+    delete rul;
+    delete cache;
+    delete pageStorage;
 }
 
 TEST(RecentlyUsedListTest, RemoveOneNotFromBack) {
@@ -81,6 +104,10 @@ TEST(RecentlyUsedListTest, RemoveOneNotFromBack) {
     rul->lookupPage(4);
     rul->lookupPage(5);
     ASSERT_THAT(rul->getContents(), testing::ElementsAre("five", "four", "two"));
+
+    delete rul;
+    delete cache;
+    delete pageStorage;
 }
 
 TEST(RecentlyUsedListTest, OneElementCapacity) {
@@ -91,4 +118,8 @@ TEST(RecentlyUsedListTest, OneElementCapacity) {
     rul->lookupPage(2);
     rul->lookupPage(3);
     ASSERT_THAT(rul->getContents(), testing::ElementsAre("three"));
+
+    delete rul;
+    delete cache;
+    delete pageStorage;
 }
