@@ -6,120 +6,97 @@
 
 using namespace std;
 
+class RecentlyUsedListTest : public testing::Test {
+protected:
+    InMemoryPageStorage* pageStorage;
+    Cache* cache;
+    RecentlyUsedList* recentlyUsedList;
+    void SetUp() override {
+        pageStorage = new InMemoryPageStorage();
+        cache = new Cache(0);
+        recentlyUsedList = new RecentlyUsedList(cache, pageStorage);
+    }
+    void TearDown() override {
+        delete recentlyUsedList;
+        delete cache;
+        delete pageStorage;
+    }
 
-TEST(RecentlyUsedListTest, EmptyCache) {
-    auto pageStorage = new InMemoryPageStorage();
-    auto cache = new Cache(0);
-    auto rul = new RecentlyUsedList(cache, pageStorage);
-    rul->lookupPage(1);
-    rul->lookupPage(2);
-    rul->lookupPage(3);
+    void lookupPages(vector<int> pagesToLookup) {
+        for (int pageNumber : pagesToLookup) {
+            recentlyUsedList->lookupPage(pageNumber);
+        }
+    }
+};
 
-    ASSERT_THAT(rul->getContents(), testing::IsEmpty());
-    ASSERT_THAT(rul->getCurrentPages(), testing::IsEmpty());
+TEST_F(RecentlyUsedListTest, EmptyCache) {
+    int cacheSize = 0;
+    cache->setCapacity(cacheSize);
+    auto pagesToLookup = {1,2,3};
+    lookupPages(pagesToLookup);
 
-    delete rul;
-    delete cache;
-    delete pageStorage;
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::IsEmpty());
+    ASSERT_THAT(recentlyUsedList->getCurrentPages(), testing::IsEmpty());
 }
 
-TEST(RecentlyUsedListTest, Empty) {
-    auto pageStorage = new InMemoryPageStorage();
-    auto cache = new Cache(0);
-    auto rul = new RecentlyUsedList(cache, pageStorage);
-    ASSERT_THAT(rul->getContents(), testing::IsEmpty());
-
-    delete rul;
-    delete cache;
-    delete pageStorage;
+TEST_F(RecentlyUsedListTest, Empty) {
+    int cacheSize = 0;
+    cache->setCapacity(cacheSize);
+    
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::IsEmpty());
 }
 
-TEST(RecentlyUsedListTest, OneItem) {
-    auto pageStorage = new InMemoryPageStorage();
-    auto cache = new Cache(4);
-    auto rul = new RecentlyUsedList(cache, pageStorage);
-    rul->lookupPage(1);
-    EXPECT_THAT(rul->getCurrentPages(), testing::ElementsAre(1));
-    EXPECT_THAT(rul->getContents(), testing::ElementsAre("one"));
-
-    delete rul;
-    delete cache;
-    delete pageStorage;
+TEST_F(RecentlyUsedListTest, OneItem) {
+    int cacheSize = 4;
+    cache->setCapacity(cacheSize);
+    
+    recentlyUsedList->lookupPage(1);
+    EXPECT_THAT(recentlyUsedList->getCurrentPages(), testing::ElementsAre(1));
+    EXPECT_THAT(recentlyUsedList->getContents(), testing::ElementsAre("one"));
 }
 
-TEST(RecentlyUsedListTest, TwoItemsOrderedByInsertion) {
-    auto pageStorage = new InMemoryPageStorage();
-    auto cache = new Cache(4);
-    auto rul = new RecentlyUsedList(cache, pageStorage);
-    rul->lookupPage(1);
-    rul->lookupPage(3);
-    ASSERT_THAT(rul->getContents(), testing::ElementsAre("three", "one"));
+TEST_F(RecentlyUsedListTest, TwoItemsOrderedByInsertion) {
+    int cacheSize = 4;
+    cache->setCapacity(cacheSize);
+    auto pagesToLookup = {1,3};
+    lookupPages(pagesToLookup);
 
-    delete rul;
-    delete cache;
-    delete pageStorage;
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::ElementsAre("three", "one"));
 }
 
-TEST(RecentlyUsedListTest, DuplicateItemsAreMovedNotInserted) {
-    auto pageStorage = new InMemoryPageStorage();
-    auto cache = new Cache(4);
-    auto rul = new RecentlyUsedList(cache, pageStorage);
-    rul->lookupPage(1);
-    rul->lookupPage(2);
-    rul->lookupPage(1);
-    ASSERT_THAT(rul->getContents(), testing::ElementsAre("one", "two"));
+TEST_F(RecentlyUsedListTest, DuplicateItemsAreMovedNotInserted) {
+    int cacheSize = 4;
+    cache->setCapacity(cacheSize);
+    auto pagesToLookup = {1,2,1};
+    lookupPages(pagesToLookup);
 
-    delete rul;
-    delete cache;
-    delete pageStorage;
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::ElementsAre("one", "two"));
 }
 
 
-TEST(RecentlyUsedListTest, MoveFromBackToFront) {
-    auto pageStorage = new InMemoryPageStorage();
-    auto cache = new Cache(4);
-    auto rul = new RecentlyUsedList(cache, pageStorage);
-    rul->lookupPage(1);
-    rul->lookupPage(2);
-    rul->lookupPage(3);
-    rul->lookupPage(1);
-    rul->lookupPage(4);
-    rul->lookupPage(5);
-    auto expected = new vector<string>{"five", "four", "one", "three"};
-    ASSERT_EQ(rul->getContents(), *expected);
+TEST_F(RecentlyUsedListTest, MoveFromBackToFront) {
+    int cacheSize = 4;
+    cache->setCapacity(cacheSize);
+    auto pagesToLookup = {1,2,3,1,4,5};
+    lookupPages(pagesToLookup);
 
-    delete rul;
-    delete cache;
-    delete pageStorage;
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::ElementsAre("five", "four", "one", "three"));
+
 }
 
-TEST(RecentlyUsedListTest, RemoveOneNotFromBack) {
-    auto pageStorage = new InMemoryPageStorage();
-    auto cache = new Cache(3);
-    auto rul = new RecentlyUsedList(cache, pageStorage);
-    rul->lookupPage(1);
-    rul->lookupPage(2);
-    rul->lookupPage(3);
-    rul->lookupPage(2);
-    rul->lookupPage(4);
-    rul->lookupPage(5);
-    ASSERT_THAT(rul->getContents(), testing::ElementsAre("five", "four", "two"));
-
-    delete rul;
-    delete cache;
-    delete pageStorage;
+TEST_F(RecentlyUsedListTest, RemoveOneNotFromBack) {
+    int cacheSize = 3;
+    cache->setCapacity(cacheSize);
+    auto pagesToLookup = {1,2,3,2,4,5};
+    lookupPages(pagesToLookup);
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::ElementsAre("five", "four", "two"));
 }
 
-TEST(RecentlyUsedListTest, OneElementCapacity) {
-    auto pageStorage = new InMemoryPageStorage();
-    auto cache = new Cache(1);
-    auto rul = new RecentlyUsedList(cache, pageStorage);
-    rul->lookupPage(1);
-    rul->lookupPage(2);
-    rul->lookupPage(3);
-    ASSERT_THAT(rul->getContents(), testing::ElementsAre("three"));
+TEST_F(RecentlyUsedListTest, OneElementCapacity) {
+    int cacheSize = 1;
+    cache->setCapacity(cacheSize);
+    auto pagesToLookup = {1,2,3};
+    lookupPages(pagesToLookup);
 
-    delete rul;
-    delete cache;
-    delete pageStorage;
+    ASSERT_THAT(recentlyUsedList->getContents(), testing::ElementsAre("three"));
 }
