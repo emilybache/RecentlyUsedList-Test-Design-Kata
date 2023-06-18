@@ -1,6 +1,6 @@
 class Cache:
-    def __init__(self):
-        self.capacity = 0
+    def __init__(self, capacity=None):
+        self.capacity = capacity or 0
         self.qnodes = {}
 
     def get_qnode(self, page_number):
